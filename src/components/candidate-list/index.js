@@ -2,7 +2,10 @@
 
 import { Fragment } from "react";
 import { Button } from "../ui/button";
-import { getCandidateDetailsByIDAction, updateJobApplicationAction } from "@/actions";
+import {
+  getCandidateDetailsByIDAction,
+  updateJobApplicationAction,
+} from "@/actions";
 import { Dialog, DialogContent } from "../ui/dialog";
 import { createClient } from "@supabase/supabase-js";
 
@@ -56,7 +59,6 @@ function CandidateList({
     await updateJobApplicationAction(jobApplicantsToUpdate, "/jobs");
   }
 
-
   return (
     <Fragment>
       {" "}
@@ -90,66 +92,91 @@ function CandidateList({
           setShowCurrentCandidateDetailsModal(false);
         }}
       >
-        <DialogContent>
-          <div>
-            <h1 className="text-2xl font-bold dark:text-white text-black">
+        <DialogContent className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-2xl mx-auto">
+          <div className="space-y-4">
+            {/* Candidate Details */}
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
               {currentCandidateDetails?.candidateInfo?.name},{" "}
-              {currentCandidateDetails?.email}
+              <span className="text-lg font-medium text-gray-500 dark:text-gray-300">
+                {currentCandidateDetails?.email}
+              </span>
             </h1>
-            <p className="text-xl font-medium dark:text-white text-black">
+            <p className="text-xl font-medium text-gray-600 dark:text-gray-400">
               {currentCandidateDetails?.candidateInfo?.currentCompany}
             </p>
-            <p className="text-sm font-normal dark:text-white text-black">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {currentCandidateDetails?.candidateInfo?.currentJobLocation}
             </p>
-            <p className="dark:text-white">
-              Total Experience:
-              {currentCandidateDetails?.candidateInfo?.totalExperience} Years
-            </p>
-            <p className="dark:text-white">
-              Salary: {currentCandidateDetails?.candidateInfo?.currentSalary}{" "}
-              LPA
-            </p>
-            <p className="dark:text-white">
-              Notice Period:{" "}
-              {currentCandidateDetails?.candidateInfo?.noticePeriod} Days
-            </p>
-            <div className="flex items-center gap-4 mt-6">
-              <h1 className="dark:text-white">Previous Companies</h1>
-              <div className="flex flex-wrap items-center gap-4 mt-6">
+
+            {/* Experience and Salary */}
+            <div className="grid grid-cols-2 gap-4 text-gray-600 dark:text-gray-300">
+              <p>
+                <span className="font-semibold">Total Experience:</span>{" "}
+                {currentCandidateDetails?.candidateInfo?.totalExperience} Years
+              </p>
+              <p>
+                <span className="font-semibold">Salary:</span>{" "}
+                {currentCandidateDetails?.candidateInfo?.currentSalary} LPA
+              </p>
+              <p>
+                <span className="font-semibold">Notice Period:</span>{" "}
+                {currentCandidateDetails?.candidateInfo?.noticePeriod} Days
+              </p>
+            </div>
+
+            {/* Previous Companies */}
+            <div className="mt-6">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+                Previous Companies
+              </h2>
+              <div className="flex flex-wrap gap-2 mt-2">
                 {currentCandidateDetails?.candidateInfo?.previousCompanies
                   .split(",")
-                  .map((skillItem) => (
-                    <div className="w-[100px] dark:bg-white flex justify-center items-center h-[35px] bg-black rounded-[4px]">
-                      <h2 className="text-[13px]  dark:text-black font-medium text-white">
-                        {skillItem}
-                      </h2>
+                  .map((company) => (
+                    <div className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg px-4 py-2 text-sm font-medium">
+                      {company}
                     </div>
                   ))}
               </div>
             </div>
-            <div className="flex flex-wrap gap-4 mt-6">
-              {currentCandidateDetails?.candidateInfo?.skills
-                .split(",")
-                .map((skillItem) => (
-                  <div className="w-[100px] dark:bg-white flex justify-center items-center h-[35px] bg-black rounded-[4px]">
-                    <h2 className="text-[13px] dark:text-black font-medium text-white">
-                      {skillItem}
-                    </h2>
-                  </div>
-                ))}
+
+            {/* Skills */}
+            <div className="mt-6">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+                Skills
+              </h2>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {currentCandidateDetails?.candidateInfo?.skills
+                  .split(",")
+                  .map((skill) => (
+                    <div className="bg-indigo-500 text-white rounded-full px-4 py-1 text-sm font-medium">
+                      {skill}
+                    </div>
+                  ))}
+              </div>
             </div>
           </div>
-          <div className="flex gap-3">
+
+          {/* Action Buttons */}
+          <div className="flex justify-between items-center gap-4 mt-6">
             <Button
               onClick={handlePreviewResume}
-              className=" flex h-11 items-center justify-center px-5"
+              className="h-11 w-full bg-blue-500 text-white font-semibold hover:bg-blue-600 transition-colors rounded-lg shadow-lg"
             >
-              Resume
+              View Resume
             </Button>
             <Button
               onClick={() => handleUpdateJobStatus("selected")}
-              className=" disabled:opacity-65 flex h-11 items-center justify-center px-5"
+              className={`h-11 w-full ${
+                jobApplications
+                  .find(
+                    (item) =>
+                      item.candidateUserID === currentCandidateDetails?.userId
+                  )
+                  ?.status.includes("selected")
+                  ? "bg-green-500"
+                  : "bg-gray-500 hover:bg-green-600"
+              } text-white font-semibold transition-colors rounded-lg shadow-lg`}
               disabled={
                 jobApplications
                   .find(
@@ -178,7 +205,16 @@ function CandidateList({
             </Button>
             <Button
               onClick={() => handleUpdateJobStatus("rejected")}
-              className=" disabled:opacity-65 flex h-11 items-center justify-center px-5"
+              className={`h-11 w-full ${
+                jobApplications
+                  .find(
+                    (item) =>
+                      item.candidateUserID === currentCandidateDetails?.userId
+                  )
+                  ?.status.includes("rejected")
+                  ? "bg-red-500"
+                  : "bg-gray-500 hover:bg-red-600"
+              } text-white font-semibold transition-colors rounded-lg shadow-lg`}
               disabled={
                 jobApplications
                   .find(

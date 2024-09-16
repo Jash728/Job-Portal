@@ -15,10 +15,9 @@ import JobIcon from "../job-icon";
 import { Button } from "../ui/button";
 import { createJobApplicationAction } from "@/actions";
 
-import { useToast } from "@/components/hooks/use-toast"
+import { useToast } from "@/components/hooks/use-toast";
 
 function CandidateJobCard({ jobItem, profileInfo, jobApplications }) {
-  
   const [showJobDetailsDrawer, setShowJobDetailsDrawer] = useState(false);
   // console.log(profileInfo?.isPremiumUser)
   const { toast } = useToast();
@@ -65,9 +64,9 @@ function CandidateJobCard({ jobItem, profileInfo, jobApplications }) {
             </Button>
           }
         />
-        <DrawerContent className="p-6">
+        <DrawerContent className="p-8 rounded-lg shadow-lg bg-white dark:bg-gray-900">
           <DrawerHeader className="px-0">
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <DrawerTitle className="text-4xl dark:text-white font-extrabold text-gray-800">
                 {jobItem?.title}
               </DrawerTitle>
@@ -78,10 +77,8 @@ function CandidateJobCard({ jobItem, profileInfo, jobApplications }) {
                     jobApplications.findIndex(
                       (item) => item.jobID === jobItem?._id
                     ) > -1
-                      ? true
-                      : false
                   }
-                  className="disabled:opacity-65 flex h-11 items-center justify-center px-5"
+                  className="disabled:opacity-50 bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg shadow transition-all duration-300 ease-in-out"
                 >
                   {jobApplications.findIndex(
                     (item) => item.jobID === jobItem?._id
@@ -90,7 +87,7 @@ function CandidateJobCard({ jobItem, profileInfo, jobApplications }) {
                     : "Apply"}
                 </Button>
                 <Button
-                  className=" flex h-11 items-center justify-center px-5"
+                  className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-2 rounded-lg shadow transition-all duration-300 ease-in-out"
                   onClick={() => setShowJobDetailsDrawer(false)}
                 >
                   Cancel
@@ -98,24 +95,33 @@ function CandidateJobCard({ jobItem, profileInfo, jobApplications }) {
               </div>
             </div>
           </DrawerHeader>
-          <DrawerDescription className="text-2xl dark:text-white  font-medium text-gray-600">
-            {jobItem?.description}
-            <span className="text-xl dark:text-white  ml-4 font-normal text-gray-500">
-              {jobItem?.location}
+
+          <DrawerDescription className="mt-6 text-lg dark:text-gray-300 text-gray-700">
+            <p className="leading-relaxed mb-4">{jobItem?.description}</p>
+            <span className="inline-block text-base dark:text-gray-400 font-normal text-gray-500">
+              Location: {jobItem?.location}
             </span>
           </DrawerDescription>
-          <div className="w-[150px] mt-6 flex justify-center dark:bg-white  items-center h-[40px] bg-black rounded-[4px]">
-            <h2 className="text-xl font-bold dark:text-black  text-white">
-              {jobItem?.type} Time
-            </h2>
+
+          <div className="mt-6 flex justify-center">
+            <div className="w-[180px] h-[45px] flex items-center justify-center dark:bg-gray-800 bg-gray-100 rounded-lg shadow">
+              <h2 className="text-xl font-bold dark:text-white text-gray-800">
+                {jobItem?.type} Time
+              </h2>
+            </div>
           </div>
-          <h3 className="text-2xl font-medium text-black mt-3">
-            Experience: {jobItem?.experience} year
+
+          <h3 className="text-2xl font-semibold dark:text-white text-gray-800 mt-6">
+            Experience: {jobItem?.experience} year(s)
           </h3>
-          <div className="flex gap-4 mt-6">
-            {jobItem?.skills.split(",").map((skillItem) => (
-              <div className="w-[100px] flex justify-center items-center h-[35px] dark:bg-white  bg-black rounded-[4px]">
-                <h2 className="text-[13px] font-medium text-white dark:text-black ">
+
+          <div className="flex flex-wrap gap-3 mt-6">
+            {jobItem?.skills.split(",").map((skillItem, index) => (
+              <div
+                key={index}
+                className="w-[120px] flex items-center justify-center h-[40px] dark:bg-gray-800 bg-gray-200 rounded-lg shadow text-center"
+              >
+                <h2 className="text-sm font-semibold dark:text-white text-gray-800">
                   {skillItem}
                 </h2>
               </div>
