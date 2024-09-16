@@ -2,55 +2,70 @@
 import { Fragment, useState } from "react";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
+  DrawerDescription,
 } from "@/components/ui/drawer";
 import CommonCard from "../common-card";
 import JobIcon from "../job-icon";
 import { Button } from "../ui/button";
-import { createJobApplicationAction } from "@/actions";
-
-import { useToast } from "@/components/hooks/use-toast";
+import { createJobApplicationAction } from "@/actions"; // Action to create the job application
+import { useToast } from "@/components/hooks/use-toast"; // Toast for notifications
 
 function CandidateJobCard({ jobItem, profileInfo, jobApplications }) {
   const [showJobDetailsDrawer, setShowJobDetailsDrawer] = useState(false);
-  // console.log(profileInfo?.isPremiumUser)
   const { toast } = useToast();
-  async function handlejobApply() {
+  
+  // Function to handle applying to a job
+  async function handleJobApply() {
     if (!profileInfo?.isPremiumUser && jobApplications.length >= 2) {
       setShowJobDetailsDrawer(false);
       toast({
         variant: "destructive",
         title: "You can apply max 2 jobs.",
-        description: "Please opt for membership to apply for more jobs",
+        description: "Please opt for membership to apply for more jobs.",
       });
       return;
     }
-    await createJobApplicationAction(
-      {
-        recruiterUserID: jobItem?.recruiterId,
-        name: profileInfo?.candidateInfo?.name,
-        email: profileInfo?.email,
-        candidateUserID: profileInfo?.userId,
-        status: ["Applied"],
-        jobID: jobItem?._id,
-        jobAppliedDate: new Date().toLocaleDateString(),
-      },
-      "/jobs"
-    );
+
+    
+
+    // Creating the job application and sending the notification
+    try {
+      await createJobApplicationAction(
+        {
+          recruiterUserID: jobItem?.recruiterId,
+          name: profileInfo?.candidateInfo?.name,
+          email: profileInfo?.email,
+          candidateUserID: profileInfo?.userId,
+          status: ["Applied"],
+          jobID: jobItem?._id,
+          jobAppliedDate: new Date().toLocaleDateString(),
+          role:jobItem?.description
+        },
+        "/jobs"
+      );
+
+      toast({
+        variant: "success",
+        title: "Application sent!",
+        description: `You have successfully applied for the job: ${jobItem?.title}.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Application failed.",
+        description: "Something went wrong while applying for the job.",
+      });
+    }
+
     setShowJobDetailsDrawer(false);
   }
+
   return (
     <Fragment>
-      <Drawer
-        open={showJobDetailsDrawer}
-        onOpenChange={setShowJobDetailsDrawer}
-      >
+      <Drawer open={showJobDetailsDrawer} onOpenChange={setShowJobDetailsDrawer}>
         <CommonCard
           icon={<JobIcon />}
           title={jobItem?.title}
@@ -58,7 +73,7 @@ function CandidateJobCard({ jobItem, profileInfo, jobApplications }) {
           footerContent={
             <Button
               onClick={() => setShowJobDetailsDrawer(true)}
-              className=" dark:bg-[#fffa27] flex h-11 items-center justify-center px-5"
+              className="dark:bg-[#fffa27] flex h-11 items-center justify-center px-5"
             >
               View Details
             </Button>
@@ -72,17 +87,13 @@ function CandidateJobCard({ jobItem, profileInfo, jobApplications }) {
               </DrawerTitle>
               <div className="flex gap-3">
                 <Button
-                  onClick={handlejobApply}
+                  onClick={handleJobApply}
                   disabled={
-                    jobApplications.findIndex(
-                      (item) => item.jobID === jobItem?._id
-                    ) > -1
+                    jobApplications.findIndex((item) => item.jobID === jobItem?._id) > -1
                   }
                   className="disabled:opacity-50 bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg shadow transition-all duration-300 ease-in-out"
                 >
-                  {jobApplications.findIndex(
-                    (item) => item.jobID === jobItem?._id
-                  ) > -1
+                  {jobApplications.findIndex((item) => item.jobID === jobItem?._id) > -1
                     ? "Applied"
                     : "Apply"}
                 </Button>

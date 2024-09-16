@@ -38,7 +38,7 @@ async function Home() {
               <img
                 src="https://utfs.io/f/4c9f7186-8ad0-4680-aece-a5abea608705-k6t10e.png"
                 alt="Hero"
-                className="h-full w-full object-contain z-10"
+                className="h-full w-full object-contain z-0"
               />
             </section>
           </div>

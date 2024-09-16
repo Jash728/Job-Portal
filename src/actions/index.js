@@ -5,6 +5,7 @@ import Application from "@/models/application";
 import Feed from "@/models/feed";
 import Job from "@/models/job";
 import Profile from "@/models/profile";
+import Notification from "@/models/notification";
 import { revalidatePath } from "next/cache";
 
 export async function createProfileAction(formData, pathToRevalidate) {
@@ -38,7 +39,7 @@ export async function fetchJobsForCandidateAction(filterParams = {}) {
   Object.keys(filterParams).forEach((filterKey) => {
     updatedParams[filterKey] = { $in: filterParams[filterKey].split(",") };
   });
-  // console.log(updatedParams, "updatedParams")
+
   const result = await Job.find(
     filterParams && Object.keys(filterParams).length > 0 ? updatedParams : {}
   );
@@ -46,9 +47,36 @@ export async function fetchJobsForCandidateAction(filterParams = {}) {
 }
 
 export async function createJobApplicationAction(data, pathToRevalidate) {
-  await connectToDB();
-  await Application.create(data);
-  revalidatePath(pathToRevalidate);
+  try {
+    await connectToDB();
+
+    // Create the job application
+    const application = await Application.create({
+      recruiterUserID: data.recruiterUserID,
+      name: data.name,
+      email: data.email,
+      candidateUserID: data.candidateUserID,
+      status: data.status,
+      jobID: data.jobID,
+      jobAppliedDate: data.jobAppliedDate,
+    });
+
+    // Create the notification
+    await Notification.create({
+      userId: data.recruiterUserID,
+      message: `Candidate ${data.name} has applied for ${data.role}.`,
+      date: new Date(),
+      read: false,
+    });
+
+    
+    revalidatePath(pathToRevalidate);
+
+    return application; // Return the created application
+  } catch (error) {
+    console.error("Error creating job application and notification:", error);
+    throw new Error("Failed to apply for the job or send notification.");
+  }
 }
 
 export async function fetchJobApplicationsForCandidate(candidateID) {
@@ -145,7 +173,6 @@ export async function updateProfileAction(data, pathToRevalidate) {
   revalidatePath(pathToRevalidate);
 }
 
-
 //create post action
 export async function createFeedPostAction(data, pathToRevalidate) {
   await connectToDB();
@@ -180,4 +207,24 @@ export async function updateFeedPostAction(data, pathToRevalidate) {
   );
 
   revalidatePath(pathToRevalidate);
+}
+
+
+export async function fetchNotificationsForUser(userId) {
+  await connectToDB();
+  const notifications = await Notification.find({ userId }).sort({ date: -1 }); // Sort notifications by date, most recent first
+  return JSON.parse(JSON.stringify(notifications));
+}
+
+export async function markNotificationsAsRead(userId) {
+  try {
+    await connectToDB();
+    await Notification.updateMany(
+      { userId, read: false },
+      { $set: { read: true } }
+    );
+  } catch (error) {
+    console.error("Error updating notifications:", error);
+    throw new Error("Failed to update notifications");
+  }
 }
