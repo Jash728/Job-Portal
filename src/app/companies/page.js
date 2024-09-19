@@ -9,7 +9,6 @@ async function CompaniesPage() {
 
   if (!profileInfo) redirect("/onboard");
   const jobsList = await fetchJobsForCandidateAction({});
-  console.log("jobList", jobsList);
   return <Companies jobsList={jobsList} />;
 }
 export default CompaniesPage;

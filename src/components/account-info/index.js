@@ -27,7 +27,6 @@ function AccountInfo({ profileInfo }) {
       setCandidateFormData(profileInfo?.candidateInfo);
   }, [profileInfo]);
 
-  console.log(profileInfo, "candidateFormData", profileInfo);
 
   async function handleUpdateAccount() {
     await updateProfileAction(

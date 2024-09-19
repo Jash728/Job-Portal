@@ -56,11 +56,8 @@ export async function createJobApplicationAction(data, pathToRevalidate) {
   try {
     await connectToDB();
 
-    // Ensure data is a plain object
     if (data instanceof Object && !(data instanceof Date) && !(data instanceof Array)) {
-      console.log('Data received:', data);
-
-      const application = await Application.create({
+       const application = await Application.create({
         recruiterUserID: data.recruiterUserID,
         name: data.name,
         email: data.email,
@@ -203,14 +200,14 @@ export async function updateProfileAction(data, pathToRevalidate) {
   revalidatePath(pathToRevalidate);
 }
 
-//create post action
+
 export async function createFeedPostAction(data, pathToRevalidate) {
   await connectToDB();
   await Feed.create(data);
   revalidatePath(pathToRevalidate);
 }
 
-//fetch all posts action
+
 export async function fetchAllFeedPostsAction() {
   await connectToDB();
   const result = await Feed.find({});
@@ -218,7 +215,7 @@ export async function fetchAllFeedPostsAction() {
   return JSON.parse(JSON.stringify(result));
 }
 
-//update post action
+
 export async function updateFeedPostAction(data, pathToRevalidate) {
   await connectToDB();
   const { userId, userName, message, image, likes, _id } = data;

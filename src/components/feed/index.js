@@ -33,7 +33,6 @@ function Feed({ user, profileInfo, allFeedPosts }) {
       .from("job-portal-public")
       .getPublicUrl(getData.path);
 
-    console.log(data);
 
     if (data)
       setFormData({
@@ -50,7 +49,6 @@ function Feed({ user, profileInfo, allFeedPosts }) {
         upsert: false,
       });
 
-    console.log(data, error);
 
     if (data) handleFetchImagePublicUrl(data);
   }
@@ -96,7 +94,7 @@ function Feed({ user, profileInfo, allFeedPosts }) {
     if (imageData) handleUploadImageToSupabase();
   }, [imageData]);
 
-  console.log(allFeedPosts);
+ 
 
   return (
     <Fragment>

@@ -12,18 +12,15 @@ import { useToast } from "@/components/hooks/use-toast"
 
 
 async function PostNewJob({profileInfo, user, jobList}) {
-  // console.log("JobList", jobList)
   const [showJobDialog, setShowJobDialog] = useState(false);
   const [jobFormData, setJobFormData] = useState({
     ...initialPostNewJobFormData,
     companyName: profileInfo?.recruiterInfo?.companyName,
   });
   const {toast} = useToast();
-  console.log(toast)
 
   function handleAddNewJob() {
     if (!profileInfo?.isPremiumUser && jobList.length >= 2) {
-      console.log("You cant post")
         toast({
           variant: "destructive",
           title: "You can post max 2 jobs.",

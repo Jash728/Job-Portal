@@ -33,26 +33,24 @@ function Header({ user, profileInfo }) {
     };
   }, [isDropdownOpen]);
 
-  // Toggling the dropdown without marking anything as read
+ 
   const handleNotificationClick = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  // Mark notifications as read and update the database
-  // Mark notifications as read and update the database
+  
 const handleMarkAllAsRead = async () => {
   try {
-    await markNotificationsAsRead(user.id); // Mark in the backend
+    await markNotificationsAsRead(user.id); 
     
-    // Optimistically update the notifications in the frontend
     setNotifications((prevNotifications) =>
       prevNotifications.map((notification) => ({
         ...notification,
-        read: true, // Mark all notifications as read
+        read: true, 
       }))
     );
 
-    setUnreadCount(0); // Reset unread count to zero
+    setUnreadCount(0); 
   } catch (error) {
     console.error("Error marking notifications as read:", error);
   }

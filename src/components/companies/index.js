@@ -5,7 +5,6 @@ import JobIcon from "../job-icon";
 import { Button } from "../ui/button";
 
 function Companies({ jobsList }) {
-  // console.log("jobs are", jobsList)
     const router = useRouter();
     
   const createUniqueSetOfCompanies = [
