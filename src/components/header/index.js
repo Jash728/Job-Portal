@@ -1,11 +1,11 @@
-"use client"
+"use client";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import { AlignJustify, Moon, Bell } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
-import { useState, useEffect,useRef} from "react";
+import { useState, useEffect, useRef } from "react";
 import { fetchNotificationsForUser, markNotificationsAsRead } from "@/actions";
 
 function Header({ user, profileInfo }) {
@@ -13,23 +13,9 @@ function Header({ user, profileInfo }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null); 
+  const dropdownRef = useRef(null);
 
-  useEffect(() => {
-    async function loadNotifications() {
-      if (user) {
-        try {
-          const notificationsData = await fetchNotificationsForUser(user.id);
-          setNotifications(notificationsData);
-          setUnreadCount(notificationsData.filter((n) => !n.read).length);
-        } catch (error) {
-          console.error("Error fetching notifications:", error);
-        }
-      }
-    }
-
-    loadNotifications();
-  }, [user]);
+  
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -47,25 +33,47 @@ function Header({ user, profileInfo }) {
     };
   }, [isDropdownOpen]);
 
+  // Toggling the dropdown without marking anything as read
   const handleNotificationClick = () => {
     setIsDropdownOpen(!isDropdownOpen);
-    const updatedNotifications = notifications.map((n) => ({
-      ...n,
-      read: true,
-    }));
-    setNotifications(updatedNotifications);
-    setUnreadCount(0);
   };
 
-  const handleMarkAllAsRead = async () => {
-    try {
-      await markNotificationsAsRead(user.id); 
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-      setUnreadCount(0);
-    } catch (error) {
-      console.error("Error marking notifications as read:", error);
+  // Mark notifications as read and update the database
+  // Mark notifications as read and update the database
+const handleMarkAllAsRead = async () => {
+  try {
+    await markNotificationsAsRead(user.id); // Mark in the backend
+    
+    // Optimistically update the notifications in the frontend
+    setNotifications((prevNotifications) =>
+      prevNotifications.map((notification) => ({
+        ...notification,
+        read: true, // Mark all notifications as read
+      }))
+    );
+
+    setUnreadCount(0); // Reset unread count to zero
+  } catch (error) {
+    console.error("Error marking notifications as read:", error);
+  }
+};
+
+
+  useEffect(() => {
+    async function loadNotifications() {
+      if (user) {
+        try {
+          const notificationsData = await fetchNotificationsForUser(user.id);
+          setNotifications(notificationsData);
+          setUnreadCount(notificationsData.filter((n) => !n.read).length);
+        } catch (error) {
+          console.error("Error fetching notifications:", error);
+        }
+      }
     }
-  };
+
+    loadNotifications();
+  }, [user]);
 
   const menuItems = [
     { label: "Home", path: "/", show: true },
@@ -142,7 +150,6 @@ function Header({ user, profileInfo }) {
             </Link>
           ) : null
         )}
-        {/* Notification Bell Icon */}
         {user && (
           <div className="relative">
             <Button
@@ -150,7 +157,11 @@ function Header({ user, profileInfo }) {
               onClick={handleNotificationClick}
             >
               <Bell
-                className={`h-6 w-6 ${unreadCount > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'} transition-colors duration-300`}
+                className={`h-6 w-6 ${
+                  unreadCount > 0
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-gray-600 dark:text-gray-300"
+                } transition-colors duration-300`}
               />
               {unreadCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs font-bold shadow-md">
@@ -160,20 +171,19 @@ function Header({ user, profileInfo }) {
             </Button>
             {isDropdownOpen && (
               <div
-                ref={dropdownRef} 
+                ref={dropdownRef}
                 className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-900 shadow-lg rounded-lg overflow-hidden z-10 border border-gray-200 dark:border-gray-700"
               >
                 <h4 className="font-semibold text-gray-800 dark:text-gray-100 p-4 border-b border-gray-200 dark:border-gray-700">
                   Notifications
                 </h4>
-                {notifications.filter((notification) => !notification.read).length === 0 ? (
+                {notifications.length === 0 ? (
                   <p className="text-gray-500 dark:text-gray-400 p-4">
                     No new notifications
                   </p>
                 ) : (
-                  notifications
-                    .filter((notification) => !notification.read)
-                    .map((notification) => (
+                  notifications.map((notification) => (
+                    notification.read === false ? (
                       <div
                         key={notification._id}
                         className={`p-4 border-b last:border-b-0 ${
@@ -182,18 +192,28 @@ function Header({ user, profileInfo }) {
                             : "bg-blue-50 dark:bg-blue-900"
                         }`}
                       >
-                        <p className={`text-sm ${notification.read ? "text-gray-600 dark:text-gray-300" : "text-blue-800 dark:text-blue-200"}`}>
+                        <p
+                          className={`text-sm ${
+                            notification.read
+                              ? "text-gray-600 dark:text-gray-300"
+                              : "text-blue-800 dark:text-blue-200"
+                          }`}
+                        >
                           {notification.message}
                         </p>
                       </div>
-                    ))
+                    ) : null 
+                  ))
+                  
                 )}
-                <Button
-                  className="w-full bg-blue-600 text-white rounded-md py-2 mt-2 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                  onClick={handleMarkAllAsRead}
-                >
-                  Mark all as read
-                </Button>
+                {notifications.length > 0 && (
+                  <Button
+                    className="w-full bg-blue-600 text-white rounded-md py-2 mt-2 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                    onClick={handleMarkAllAsRead}
+                  >
+                    Mark all as read
+                  </Button>
+                )}
               </div>
             )}
           </div>

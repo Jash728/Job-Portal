@@ -33,6 +33,12 @@ export async function fetchJobsForRecruiterAction(id) {
   return JSON.parse(JSON.stringify(result));
 }
 
+export async function fetchJobsFromJobId(id) {
+  await connectToDB();
+  const result = await Job.find({ _id: id });
+  return JSON.parse(JSON.stringify(result));
+}
+
 export async function fetchJobsForCandidateAction(filterParams = {}) {
   await connectToDB();
   let updatedParams = {};
@@ -50,34 +56,40 @@ export async function createJobApplicationAction(data, pathToRevalidate) {
   try {
     await connectToDB();
 
-    // Create the job application
-    const application = await Application.create({
-      recruiterUserID: data.recruiterUserID,
-      name: data.name,
-      email: data.email,
-      candidateUserID: data.candidateUserID,
-      status: data.status,
-      jobID: data.jobID,
-      jobAppliedDate: data.jobAppliedDate,
-    });
+    // Ensure data is a plain object
+    if (data instanceof Object && !(data instanceof Date) && !(data instanceof Array)) {
+      console.log('Data received:', data);
 
-    // Create the notification
-    await Notification.create({
-      userId: data.recruiterUserID,
-      message: `Candidate ${data.name} has applied for ${data.role}.`,
-      date: new Date(),
-      read: false,
-    });
+      const application = await Application.create({
+        recruiterUserID: data.recruiterUserID,
+        name: data.name,
+        email: data.email,
+        candidateUserID: data.candidateUserID,
+        status: data.status,
+        jobID: data.jobID,
+        jobAppliedDate: data.jobAppliedDate,
+      });
 
-    
-    revalidatePath(pathToRevalidate);
+      await Notification.create({
+        userId: data.recruiterUserID,
+        message: `Candidate ${data.name} has applied for ${data.role}.`,
+        date: new Date(),
+        read: false,
+      });
 
-    return application; // Return the created application
+      revalidatePath(pathToRevalidate);
+
+      return { success: true };
+    } else {
+      throw new Error('Invalid data format');
+    }
   } catch (error) {
-    console.error("Error creating job application and notification:", error);
-    throw new Error("Failed to apply for the job or send notification.");
+    console.error('Error creating job application:', error);
+    return { success: false, error: error.message };
   }
 }
+
+
 
 export async function fetchJobApplicationsForCandidate(candidateID) {
   await connectToDB();
@@ -111,7 +123,10 @@ export async function updateJobApplicationAction(data, pathToRevalidate) {
     jobID,
     _id,
     jobAppliedDate,
+    company,
+    title
   } = data;
+
   await Application.findOneAndUpdate(
     {
       _id: _id,
@@ -127,6 +142,21 @@ export async function updateJobApplicationAction(data, pathToRevalidate) {
     },
     { new: true }
   );
+  let notificationMessage = "";
+  if (status.includes("selected")) {
+    notificationMessage = `Congratulations! Your application for the position of ${title} at ${company} has been accepted!`;
+  } else if (status.includes("rejected")) {
+    notificationMessage = `We regret to inform you that your application for the position of ${title} at ${company} has been unsuccessful.
+`;
+  }
+
+  await Notification.create({
+    userId: candidateUserID,
+    message: notificationMessage,
+    date: new Date(),
+    read: false, 
+  });
+
   revalidatePath(pathToRevalidate);
 }
 
@@ -212,7 +242,7 @@ export async function updateFeedPostAction(data, pathToRevalidate) {
 
 export async function fetchNotificationsForUser(userId) {
   await connectToDB();
-  const notifications = await Notification.find({ userId }).sort({ date: -1 }); // Sort notifications by date, most recent first
+  const notifications = await Notification.find({ userId }).sort({ date: -1 }); 
   return JSON.parse(JSON.stringify(notifications));
 }
 

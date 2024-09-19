@@ -10,14 +10,28 @@ import {
 import CommonCard from "../common-card";
 import JobIcon from "../job-icon";
 import { Button } from "../ui/button";
-import { createJobApplicationAction } from "@/actions"; // Action to create the job application
-import { useToast } from "@/components/hooks/use-toast"; // Toast for notifications
+import { createJobApplicationAction } from "@/actions";
+import { useToast } from "@/components/hooks/use-toast"; 
 
 function CandidateJobCard({ jobItem, profileInfo, jobApplications }) {
   const [showJobDetailsDrawer, setShowJobDetailsDrawer] = useState(false);
   const { toast } = useToast();
+
+  function showToast(type, title, description) {
+    const baseStyles = "p-4 rounded-md text-white"; 
+    const successStyles = "bg-green-600"; 
+    const errorStyles = "bg-red-600";
   
-  // Function to handle applying to a job
+    const toastStyles = type === "success" ? `${baseStyles} ${successStyles}` : `${baseStyles} ${errorStyles}`;
+  
+    toast({
+      className: toastStyles,
+      variant: type,
+      title: title,
+      description: description,
+    });
+  }
+
   async function handleJobApply() {
     if (!profileInfo?.isPremiumUser && jobApplications.length >= 2) {
       setShowJobDetailsDrawer(false);
@@ -28,44 +42,37 @@ function CandidateJobCard({ jobItem, profileInfo, jobApplications }) {
       });
       return;
     }
-
-    
-
-    // Creating the job application and sending the notification
-    try {
-      await createJobApplicationAction(
-        {
-          recruiterUserID: jobItem?.recruiterId,
-          name: profileInfo?.candidateInfo?.name,
-          email: profileInfo?.email,
-          candidateUserID: profileInfo?.userId,
-          status: ["Applied"],
-          jobID: jobItem?._id,
-          jobAppliedDate: new Date().toLocaleDateString(),
-          role:jobItem?.description
-        },
-        "/jobs"
-      );
-
-      toast({
-        variant: "success",
-        title: "Application sent!",
-        description: `You have successfully applied for the job: ${jobItem?.title}.`,
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Application failed.",
-        description: "Something went wrong while applying for the job.",
-      });
+  
+    const job = {
+      recruiterUserID: jobItem.recruiterId,
+      name: profileInfo.candidateInfo?.name,
+      email: profileInfo.email,
+      candidateUserID: profileInfo.userId,
+      status: ["Applied"],
+      jobID: jobItem._id,
+      jobAppliedDate: new Date().toLocaleDateString(),
+      role: jobItem.description,
+    };
+  
+   
+    const response = await createJobApplicationAction(job, "/jobs");
+  
+    if (response) {
+      showToast("success", "Application sent!", `You have successfully applied for the job: ${jobItem.title}.`);
+    } else {
+      showToast("error", "Application failed.", "Something went wrong while applying for the job.");
     }
-
+  
     setShowJobDetailsDrawer(false);
   }
-
+  
+  
   return (
     <Fragment>
-      <Drawer open={showJobDetailsDrawer} onOpenChange={setShowJobDetailsDrawer}>
+      <Drawer
+        open={showJobDetailsDrawer}
+        onOpenChange={setShowJobDetailsDrawer}
+      >
         <CommonCard
           icon={<JobIcon />}
           title={jobItem?.title}
@@ -89,11 +96,15 @@ function CandidateJobCard({ jobItem, profileInfo, jobApplications }) {
                 <Button
                   onClick={handleJobApply}
                   disabled={
-                    jobApplications.findIndex((item) => item.jobID === jobItem?._id) > -1
+                    jobApplications.findIndex(
+                      (item) => item.jobID === jobItem?._id
+                    ) > -1
                   }
                   className="disabled:opacity-50 bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg shadow transition-all duration-300 ease-in-out"
                 >
-                  {jobApplications.findIndex((item) => item.jobID === jobItem?._id) > -1
+                  {jobApplications.findIndex(
+                    (item) => item.jobID === jobItem?._id
+                  ) > -1
                     ? "Applied"
                     : "Apply"}
                 </Button>

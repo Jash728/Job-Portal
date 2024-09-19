@@ -3,6 +3,7 @@
 import { Fragment } from "react";
 import { Button } from "../ui/button";
 import {
+  fetchJobsFromJobId,
   getCandidateDetailsByIDAction,
   updateJobApplicationAction,
 } from "@/actions";
@@ -49,12 +50,17 @@ function CandidateList({
     let idxofCurrentJobApplicants = cpyJobApplicants.findIndex(
       (item) => item.candidateUserID == currentCandidateDetails?.userId
     );
+    const jobID = cpyJobApplicants[idxofCurrentJobApplicants].jobID;
+    const jobToUpdate = await fetchJobsFromJobId(jobID);
+    const { companyName, title } = jobToUpdate[0];
     const jobApplicantsToUpdate = {
       ...cpyJobApplicants[idxofCurrentJobApplicants],
       status:
         cpyJobApplicants[idxofCurrentJobApplicants].status.concat(
           currentStatus
         ),
+      company : companyName,
+      title : title
     };
     await updateJobApplicationAction(jobApplicantsToUpdate, "/jobs");
   }
